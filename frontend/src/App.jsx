@@ -10,7 +10,7 @@ import './App.css'
 function App() {
   const conversionFactor = 10**18
   const URL_HARDHAT = "http://127.0.0.1:8545/"
-  const tokenAddress = "0xc5a5C42992dECbae36851359345FE25997F5C42d"
+  const tokenAddress = "0xa82fF9aFd8f496c3d6ac40E2a0F282E47488CFc9"
 
   const [userAdress, setUserAddress] = useState()
   const [qttTuringIssue, setQttTuringIssue] = useState(0) 
@@ -32,6 +32,18 @@ function App() {
 
     return contract
   }
+
+  async function _setEventListener(){
+    const contract = await _initializeContract()
+
+    contract.on("Vote", event => {
+      console.log("Votou!!")
+    })
+  }
+
+  useEffect(() => {
+    _setEventListener()
+  }, [])
   
   async function issueToken(){
     const contract = await _initializeContract()
@@ -53,65 +65,76 @@ function App() {
   }
 
   async function vote(){
-    const contract = await _initializeContract()
+    try {
+      const contract = await _initializeContract()
+      await contract.vote(codenameVote, ethers.parseEther(qttTuringVote.toString()))
 
-    await contract.vote(codenameVote, ethers.parseEther(qttTuringVote.toString()))
+    } catch {
+      if(!isVotingOn){
+        console.log("Votação fecahda!")
+      }
+    }
   }
 
   return (
-    <>
-      <h1>Votação Turing</h1>
-      <div style={{display: 'flex', gap: '20px'}}>
+    <div className='app0'>
+      <div className='ranking'>
+          <h1 className='titleVotes'>Ranking de Votos</h1>
+      </div>
 
-        <div className='app'>
-          <input 
-            type="text"
-            placeholder="Endereço" 
-            onChange={e => setUserAddress(e.target.value)}
-          />
-          <input 
-            type="text"
-            placeholder="Quantidade de Turings" 
-            onChange={e => setQttTuringIssue(e.target.value)}
-          />
-          <button 
-            onClick={issueToken}>
-              Enviar
-          </button>
-        </div>
-
-        <div className='app'>
-          <input 
-            type="text"
-            placeholder="Endereço" 
-            onChange={e => setUserBalanceAddr(e.target.value)}
-          />
-          <button 
-            onClick={getBalance}>
-              Obter Saldo
-          </button>
-          <p>{userBalance}</p>
-        </div>
-
-        <div className='app'>
-            <input type="checkbox" id='toggle' onClick={setVoting}/>
-            <label htmlFor="toggle">{isVotingOn? "Votação aberta" : "Votação fechada"}</label>
-        </div>
-
-        <div className='app'>
+      <div>
+        <h1>Votação Turing</h1>
+        <div style={{display: 'flex', gap: '20px'}}>
+          <div className='app'>
             <input 
-              type='text'
-              placeholder='Codinome'
-              onChange={e => setCodenameVote(e.target.value)}  
+              type="text"
+              placeholder="Endereço" 
+              onChange={e => setUserAddress(e.target.value)}
             />
             <input 
-              type='text' 
-              placeholder='Quantidade de Turings'
-              onChange={e => setQttTuringVote(parseInt(e.target.value))}
+              type="text"
+              placeholder="Quantidade de Turings" 
+              onChange={e => setQttTuringIssue(e.target.value)}
             />
-            <button onClick={vote}>
-              Votar
+            <button 
+              onClick={issueToken}>
+                Enviar
             </button>
+          </div>
+
+          <div className='app'>
+            <input 
+              type="text"
+              placeholder="Endereço" 
+              onChange={e => setUserBalanceAddr(e.target.value)}
+            />
+            <button 
+              onClick={getBalance}>
+                Obter Saldo
+            </button>
+            <p>{userBalance}</p>
+          </div>
+
+          <div className='app'>
+              <input type="checkbox" id='toggle' onClick={setVoting}/>
+              <label htmlFor="toggle">{isVotingOn? "Votação aberta" : "Votação fechada"}</label>
+          </div>
+
+          <div className='app'>
+              <input 
+                type='text'
+                placeholder='Codinome'
+                onChange={e => setCodenameVote(e.target.value)}  
+              />
+              <input 
+                type='text' 
+                placeholder='Quantidade de Turings'
+                onChange={e => setQttTuringVote(parseInt(e.target.value))}
+              />
+              <button onClick={vote}>
+                Votar
+              </button>
+          </div>
         </div>
       </div>
 
@@ -127,7 +150,8 @@ function App() {
       <p className="read-the-docs">
         Click on the Vite and React logos to learn more
       </p> */}
-    </>
+    </div>
+
   )
 }
 

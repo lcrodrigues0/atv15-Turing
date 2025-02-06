@@ -11,6 +11,17 @@
   gap: 15px;
 }
 
+.app0 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 50px;
+}
+
+.ranking {
+  align-items: center;
+  background-color: #888;
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;
