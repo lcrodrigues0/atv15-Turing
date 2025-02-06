@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ethers } from "ethers"
 
 import reactLogo from './assets/react.svg'
@@ -8,47 +8,111 @@ import './App.css'
 
 
 function App() {
+  const conversionFactor = 10**18
   const URL_HARDHAT = "http://127.0.0.1:8545/"
-  const tokenAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
-
-  const [count, setCount] = useState(0)
+  const tokenAddress = "0xc5a5C42992dECbae36851359345FE25997F5C42d"
 
   const [userAdress, setUserAddress] = useState()
-  const [value, setValue] = useState(0) 
+  const [qttTuringIssue, setQttTuringIssue] = useState(0) 
 
-  // Connect to Hardhat
+  const [userBalance, setUserBalance] = useState()
+  const [userBalanceAddr, setUserBalanceAddr] = useState()
+
+  const [isVotingOn, setIsVotingOn] = useState(true)
+
+  const [codenameVote, setCodenameVote] = useState()
+  const [qttTuringVote, setQttTuringVote] = useState()
+
+
   const provider = new ethers.JsonRpcProvider(URL_HARDHAT)
-  // Get write access as an account by getting the signer
-  const signer = provider.getSigner()
 
-  const contract = new ethers.Contract(tokenAddress, TokenArtifact.abi, signer)
+  async function _initializeContract(){
+    const signer = await provider.getSigner()
+    const contract = await new ethers.Contract(tokenAddress, TokenArtifact.abi, signer)
 
-  function issueToken(){
-    console.log(userAdress)
-    console.log(value)
+    return contract
+  }
+  
+  async function issueToken(){
+    const contract = await _initializeContract()
+    await contract.issueToken(userAdress, ethers.parseEther(qttTuringIssue))
+  }
+
+  async function getBalance(){
+    const contract = await _initializeContract()
+    const balance = await contract.balanceOf(userBalanceAddr)
+
+    setUserBalance(parseInt(ethers.formatEther(balance)))
+  }
+
+  async function setVoting(){
+    const contract = await _initializeContract()
+    
+    isVotingOn ? await contract.votingOff() : await contract.votingOn()
+    setIsVotingOn(prevState => !prevState)
+  }
+
+  async function vote(){
+    const contract = await _initializeContract()
+
+    await contract.vote(codenameVote, ethers.parseEther(qttTuringVote.toString()))
   }
 
   return (
     <>
       <h1>Votação Turing</h1>
-      <div className='app'>
+      <div style={{display: 'flex', gap: '20px'}}>
 
-        <input 
-          type="text"
-          placeholder="Endereço" 
-          onChange={e => setUserAddress(e.target.value)}
-        />
+        <div className='app'>
+          <input 
+            type="text"
+            placeholder="Endereço" 
+            onChange={e => setUserAddress(e.target.value)}
+          />
+          <input 
+            type="text"
+            placeholder="Quantidade de Turings" 
+            onChange={e => setQttTuringIssue(e.target.value)}
+          />
+          <button 
+            onClick={issueToken}>
+              Enviar
+          </button>
+        </div>
 
-        <input 
-          type="text"
-          placeholder="Quantidade de Turings" 
-          onChange={e => setValue(e.target.value)}
-        />
+        <div className='app'>
+          <input 
+            type="text"
+            placeholder="Endereço" 
+            onChange={e => setUserBalanceAddr(e.target.value)}
+          />
+          <button 
+            onClick={getBalance}>
+              Obter Saldo
+          </button>
+          <p>{userBalance}</p>
+        </div>
 
-        <button 
-          onClick={issueToken}>
-            Enviar
-        </button>
+        <div className='app'>
+            <input type="checkbox" id='toggle' onClick={setVoting}/>
+            <label htmlFor="toggle">{isVotingOn? "Votação aberta" : "Votação fechada"}</label>
+        </div>
+
+        <div className='app'>
+            <input 
+              type='text'
+              placeholder='Codinome'
+              onChange={e => setCodenameVote(e.target.value)}  
+            />
+            <input 
+              type='text' 
+              placeholder='Quantidade de Turings'
+              onChange={e => setQttTuringVote(parseInt(e.target.value))}
+            />
+            <button onClick={vote}>
+              Votar
+            </button>
+        </div>
       </div>
 
       {/* <h1>Vite + React</h1>

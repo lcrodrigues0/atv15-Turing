@@ -13,6 +13,8 @@ contract Turing is ERC20 {
     mapping(address => mapping(address => bool)) hasVoted;
 
     constructor() ERC20 ("Turing", "Turing"){
+        authorizedUsers[0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266] = true;
+        
         authorizedUsers[0x70997970C51812dc3A010C7d01b50e0d17dc79C8] = true;
         authorizedUsers[0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC] = true;
         authorizedUsers[0x90F79bf6EB2c4f870365E785982E1f101E93b906] = true;
@@ -30,7 +32,6 @@ contract Turing is ERC20 {
         registeredUsers["nome6"] = 0x976EA74026E726554dB657fA54763abd0C3a0aa9;
         registeredUsers["nome7"] = 0x14dC79964da2C08b23698B3D3cc7Ca32193d9955;
         registeredUsers["nome8"] = 0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f;
-
 
         owner = msg.sender;
     }
@@ -50,17 +51,19 @@ contract Turing is ERC20 {
         _;
     }
 
-    function issueToken(address addrUser, uint qtdTuring) public isSpecialUser(msg.sender){
-        _mint(addrUser, qtdTuring*conversion);
+    function issueToken(address addrUser, uint qtdSaTuring) public isSpecialUser(msg.sender){
+        _mint(addrUser, qtdSaTuring);
     }
 
-    function vote(address addrUser, uint qtdTuring) public isAuthorizedUser(msg.sender) onlyOnVotingOn() {
+    function vote(string memory userName, uint qtdSaTuring) public isAuthorizedUser(msg.sender) onlyOnVotingOn() {
+        address addrUser = registeredUsers[userName];
+
         require(msg.sender != addrUser);
         require(!hasVoted[msg.sender][addrUser]);
-        require(qtdTuring <= 2);
+        require(qtdSaTuring <= 2000000000000000000);
 
-        _mint(addrUser, qtdTuring*conversion);
-        _mint(msg.sender, 2*conversion/10);
+        _mint(addrUser, qtdSaTuring);
+        _mint(msg.sender, 200000000000000000);
     }
 
     function votingOn() public isSpecialUser(msg.sender){
