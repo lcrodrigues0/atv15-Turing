@@ -10,7 +10,7 @@ contract Turing is ERC20 {
     mapping(string => address) private registeredUsers;
     mapping(address => bool) private authorizedUsers;
     mapping(address => mapping(address => bool)) hasVoted;
-    mapping(address => uint256) balances;
+    mapping(string => uint256) balances;
 
     event Vote();
 
@@ -35,6 +35,15 @@ contract Turing is ERC20 {
         registeredUsers["nome7"] = 0x14dC79964da2C08b23698B3D3cc7Ca32193d9955;
         registeredUsers["nome8"] = 0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f;
 
+        balances["nome1"] = 0;
+        balances["nome2"] = 0;
+        balances["nome3"] = 0;
+        balances["nome4"] = 0;
+        balances["nome5"] = 0;
+        balances["nome6"] = 0;
+        balances["nome7"] = 0;
+        balances["nome8"] = 0;
+
         owner = msg.sender;
     }
 
@@ -53,14 +62,15 @@ contract Turing is ERC20 {
         _;
     }
 
-    function issueToken(address addrUser, uint qtdSaTuring) public isSpecialUser(msg.sender){
+    function issueToken(string memory codename, uint qtdSaTuring) public isSpecialUser(msg.sender){
+        address addrUser = registeredUsers[codename];
         _mint(addrUser, qtdSaTuring);
 
-        balances[addrUser] = qtdSaTuring;
+        balances[codename] = balanceOf(addrUser);
     }
 
-    function vote(string memory userName, uint qtdSaTuring) public isAuthorizedUser(msg.sender) onlyOnVotingOn() {
-        address addrUser = registeredUsers[userName];
+    function vote(string memory codename, uint qtdSaTuring) public isAuthorizedUser(msg.sender) onlyOnVotingOn() {
+        address addrUser = registeredUsers[codename];
 
         require(msg.sender != addrUser);
         require(!hasVoted[msg.sender][addrUser]);
@@ -69,7 +79,7 @@ contract Turing is ERC20 {
         _mint(addrUser, qtdSaTuring);
         _mint(msg.sender, 200000000000000000);
 
-        balances[addrUser] += qtdSaTuring;
+        balances[codename] = balanceOf(addrUser);
 
         emit Vote();
     }
@@ -87,8 +97,14 @@ contract Turing is ERC20 {
         registeredUsers[codename] = userAddress; 
     }
 
-    function getUserInfos() public pure returns(string[8] memory, uint256[8] memory){
+    function getUserInfos() public view returns(string[8] memory, uint256[8] memory){
         string[8] memory userNames = ["nome1", "nome2", "nome3", "nome4", "nome5", "nome6", "nome7", "nome8"];
-        return (userNames, balances);
+        uint256[8] memory userBalances;
+
+        for (uint256 i = 0; i < userNames.length; i++){
+            userBalances[i] = balances[userNames[i]];
+        }   
+
+        return (userNames, userBalances);
     }
 }

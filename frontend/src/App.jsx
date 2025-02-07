@@ -10,9 +10,9 @@ import './App.css'
 function App() {
   const conversionFactor = 10**18
   const URL_HARDHAT = "http://127.0.0.1:8545/"
-  const tokenAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
+  const tokenAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
 
-  const [userAdress, setUserAddress] = useState()
+  const [userName, setUserName] = useState()
   const [qttTuringIssue, setQttTuringIssue] = useState(0) 
 
   const [userBalance, setUserBalance] = useState()
@@ -23,8 +23,7 @@ function App() {
   const [codenameVote, setCodenameVote] = useState()
   const [qttTuringVote, setQttTuringVote] = useState()
 
-  const [userNames, setUserNames] = useState([])
-  const [userBalanes, setUserBalances] = useState([])
+  const [rank, setRank] = useState([[]])
 
   const provider = new ethers.JsonRpcProvider(URL_HARDHAT)
 
@@ -40,17 +39,10 @@ function App() {
 
     contract.on("Vote", event => {
       console.log("Votou!!")
+      getInfo()
     })
   }
 
-  async function getInfo() {
-    const contract = await _initializeContract()
-    const [names, balances] = await contract.getUserNames()
-
-    setUserNames(names)
-    setUserBalances(balances)
-  }
-  
   useEffect(() => {
     _setEventListener()
     getInfo()
@@ -58,7 +50,7 @@ function App() {
   
   async function issueToken(){
     const contract = await _initializeContract()
-    await contract.issueToken(userAdress, ethers.parseEther(qttTuringIssue))
+    await contract.issueToken(userName, ethers.parseEther(qttTuringIssue))
   }
 
   async function getBalance(){
@@ -82,18 +74,39 @@ function App() {
 
     } catch {
       if(!isVotingOn){
-        console.log("Votação fecahda!")
+        console.log("Votação fechada!")
       }
     }
   }
 
+  async function getInfo() {
+    const contract = await _initializeContract()
+    let [names, balances] = await contract.getUserInfos()
+
+    balances = balances.map(balance => {
+      return ethers.formatEther(balance)
+    })
+     
+    let pairs = []
+    names.forEach((name, index)=> {
+      pairs[index] = [name, balances[index]]
+    })
+
+    pairs.sort((a, b) => b[1] - a[1])
+
+    setRank(pairs)
+  }
+  
   return (
     <div className='app0'>
       <div className='ranking'>
           <h1 className='titleVotes'>Ranking de Votos</h1>
           <ul>
-            {userNames.map((nome, index) => (
-              <li key={index}>{balance + "    " + nome}</li>
+            {rank.map((element, index) => (
+              <li key={index}>
+                  <span>{element[0]}</span>
+                  <span>{element[1]}</span>
+              </li>
             ))}
           </ul>
       </div>
@@ -101,11 +114,12 @@ function App() {
       <div>
         <h1>Votação Turing</h1>
         <div style={{display: 'flex', gap: '20px'}}>
+          {/* Issue Token */}
           <div className='app'>
             <input 
               type="text"
-              placeholder="Endereço" 
-              onChange={e => setUserAddress(e.target.value)}
+              placeholder="Nome" 
+              onChange={e => setUserName(e.target.value)}
             />
             <input 
               type="text"
@@ -118,7 +132,8 @@ function App() {
             </button>
           </div>
 
-          <div className='app'>
+          {/* Get balance */}
+          {/* <div className='app'>
             <input 
               type="text"
               placeholder="Endereço" 
@@ -129,13 +144,15 @@ function App() {
                 Obter Saldo
             </button>
             <p>{userBalance}</p>
-          </div>
+          </div> */}
 
+          {/* Voting On/Off */}
           <div className='app'>
               <input type="checkbox" id='toggle' onClick={setVoting}/>
               <label htmlFor="toggle">{isVotingOn? "Votação aberta" : "Votação fechada"}</label>
           </div>
-
+          
+          {/* Vote */}
           <div className='app'>
               <input 
                 type='text'
