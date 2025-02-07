@@ -10,7 +10,7 @@ import './App.css'
 function App() {
   const conversionFactor = 10**18
   const URL_HARDHAT = "http://127.0.0.1:8545/"
-  const tokenAddress = "0xa82fF9aFd8f496c3d6ac40E2a0F282E47488CFc9"
+  const tokenAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
 
   const [userAdress, setUserAddress] = useState()
   const [qttTuringIssue, setQttTuringIssue] = useState(0) 
@@ -23,6 +23,8 @@ function App() {
   const [codenameVote, setCodenameVote] = useState()
   const [qttTuringVote, setQttTuringVote] = useState()
 
+  const [userNames, setUserNames] = useState([])
+  const [userBalanes, setUserBalances] = useState([])
 
   const provider = new ethers.JsonRpcProvider(URL_HARDHAT)
 
@@ -41,8 +43,17 @@ function App() {
     })
   }
 
+  async function getInfo() {
+    const contract = await _initializeContract()
+    const [names, balances] = await contract.getUserNames()
+
+    setUserNames(names)
+    setUserBalances(balances)
+  }
+  
   useEffect(() => {
     _setEventListener()
+    getInfo()
   }, [])
   
   async function issueToken(){
@@ -80,6 +91,11 @@ function App() {
     <div className='app0'>
       <div className='ranking'>
           <h1 className='titleVotes'>Ranking de Votos</h1>
+          <ul>
+            {userNames.map((nome, index) => (
+              <li key={index}>{balance + "    " + nome}</li>
+            ))}
+          </ul>
       </div>
 
       <div>

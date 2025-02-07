@@ -6,11 +6,13 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 contract Turing is ERC20 {
     address private owner;
     bool private isVotingOn = true;
-    uint private conversion = 10000000000000000000;
 
     mapping(string => address) private registeredUsers;
     mapping(address => bool) private authorizedUsers;
     mapping(address => mapping(address => bool)) hasVoted;
+    mapping(address => uint256) balances;
+
+    event Vote();
 
     constructor() ERC20 ("Turing", "Turing"){
         authorizedUsers[0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266] = true;
@@ -53,6 +55,8 @@ contract Turing is ERC20 {
 
     function issueToken(address addrUser, uint qtdSaTuring) public isSpecialUser(msg.sender){
         _mint(addrUser, qtdSaTuring);
+
+        balances[addrUser] = qtdSaTuring;
     }
 
     function vote(string memory userName, uint qtdSaTuring) public isAuthorizedUser(msg.sender) onlyOnVotingOn() {
@@ -64,6 +68,10 @@ contract Turing is ERC20 {
 
         _mint(addrUser, qtdSaTuring);
         _mint(msg.sender, 200000000000000000);
+
+        balances[addrUser] += qtdSaTuring;
+
+        emit Vote();
     }
 
     function votingOn() public isSpecialUser(msg.sender){
@@ -79,5 +87,8 @@ contract Turing is ERC20 {
         registeredUsers[codename] = userAddress; 
     }
 
-
+    function getUserInfos() public pure returns(string[8] memory, uint256[8] memory){
+        string[8] memory userNames = ["nome1", "nome2", "nome3", "nome4", "nome5", "nome6", "nome7", "nome8"];
+        return (userNames, balances);
+    }
 }

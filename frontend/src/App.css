@@ -14,12 +14,21 @@
 .app0 {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 50px;
+  gap: 100px;
 }
 
 .ranking {
   align-items: center;
   background-color: #888;
+}
+
+.ranking > ul{
+  list-style-type: none;
+  padding: 10px;
+}
+
+.ranking > ul > li {
+  margin-bottom: 10px;
 }
 
 .logo {
