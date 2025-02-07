@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react'
 import { ethers } from "ethers"
 
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import TokenArtifact from "../../artifacts/contracts/Turing.sol/Turing.json"
 import './App.css'
 
@@ -15,8 +13,8 @@ function App() {
   const [userName, setUserName] = useState()
   const [qttTuringIssue, setQttTuringIssue] = useState(0) 
 
-  const [userBalance, setUserBalance] = useState()
-  const [userBalanceAddr, setUserBalanceAddr] = useState()
+  // const [userBalance, setUserBalance] = useState()
+  // const [userBalanceAddr, setUserBalanceAddr] = useState()
 
   const [isVotingOn, setIsVotingOn] = useState(true)
 
@@ -25,7 +23,7 @@ function App() {
 
   const [rank, setRank] = useState([[]])
 
-  const provider = new ethers.JsonRpcProvider(URL_HARDHAT)
+  const provider = new ethers.BrowserProvider(window.ethereum)
 
   async function _initializeContract(){
     const signer = await provider.getSigner()
