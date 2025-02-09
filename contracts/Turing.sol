@@ -14,11 +14,11 @@ contract Turing is ERC20 {
     mapping(address => mapping(address => bool)) hasVoted;
     mapping(string => uint256) balances;
 
-    event BalancesChanged();
+    event BalancesChanged(address userAddress);
+    event VotingOn();
+    event VotingOff();
 
     constructor() ERC20 ("Turing", "Turing"){        
-        authorizedUsers[0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266] = true;
-
         authorizedUsers[0x70997970C51812dc3A010C7d01b50e0d17dc79C8] = true;
         authorizedUsers[0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC] = true;
         authorizedUsers[0x90F79bf6EB2c4f870365E785982E1f101E93b906] = true;
@@ -28,8 +28,6 @@ contract Turing is ERC20 {
         authorizedUsers[0x14dC79964da2C08b23698B3D3cc7Ca32193d9955] = true;
         authorizedUsers[0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f] = true;
 
-        registeredUsers["nome0"] = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
-
         registeredUsers["nome1"] = 0x70997970C51812dc3A010C7d01b50e0d17dc79C8;
         registeredUsers["nome2"] = 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC;
         registeredUsers["nome3"] = 0x90F79bf6EB2c4f870365E785982E1f101E93b906;
@@ -38,8 +36,6 @@ contract Turing is ERC20 {
         registeredUsers["nome6"] = 0x976EA74026E726554dB657fA54763abd0C3a0aa9;
         registeredUsers["nome7"] = 0x14dC79964da2C08b23698B3D3cc7Ca32193d9955;
         registeredUsers["nome8"] = 0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f;
-
-        balances["nome0"] = 0;
         
         balances["nome1"] = 0;
         balances["nome2"] = 0;
@@ -50,24 +46,23 @@ contract Turing is ERC20 {
         balances["nome7"] = 0;
         balances["nome8"] = 0;
 
-        // owner = msg.sender;
-        owner = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
-        // owner = 0x502542668aF09fa7aea52174b9965A7799343Df7;
+        owner = msg.sender;
+        // owner = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
         teacher = 0x502542668aF09fa7aea52174b9965A7799343Df7;
     }
 
     modifier isSpecialUser(address senderAddress){
-        require(senderAddress == owner || senderAddress == teacher);
+        require(senderAddress == owner || senderAddress == teacher, "User isn't a special user");
         _;
     }
 
     modifier onlyOnVotingOn(){
-        require(isVotingOn);
+        require(isVotingOn, "Voting is off");
         _;
     }
 
     modifier isAuthorizedUser(address senderAddress){
-        require(authorizedUsers[senderAddress]);
+        require(authorizedUsers[senderAddress], "User isn't an authorized user");
         _;
     }
 
@@ -77,15 +72,15 @@ contract Turing is ERC20 {
 
         balances[codename] = balanceOf(addrUser);
 
-        emit BalancesChanged();
+        emit BalancesChanged(msg.sender);
     }
 
     function vote(string memory codename, uint qtdSaTuring) public isAuthorizedUser(msg.sender) onlyOnVotingOn() {
         address addrUser = registeredUsers[codename];
 
-        require(msg.sender != addrUser);
-        require(!hasVoted[msg.sender][addrUser]);
-        require(qtdSaTuring <= 2000000000000000000);
+        require(msg.sender != addrUser, "User can't vote for itself");
+        require(!hasVoted[msg.sender][addrUser], "User has already voted for this user");
+        require(qtdSaTuring <= 2000000000000000000, "Maximum SaTurings");
 
         _mint(addrUser, qtdSaTuring);
         _mint(msg.sender, 200000000000000000);
@@ -93,15 +88,17 @@ contract Turing is ERC20 {
 
         balances[codename] = balanceOf(addrUser);
 
-        emit BalancesChanged();
+        emit BalancesChanged(msg.sender);
     }
 
     function votingOn() public isSpecialUser(msg.sender){
         isVotingOn = true;
+        emit VotingOn();
     }
 
     function votingOff() public isSpecialUser(msg.sender){
         isVotingOn = false;
+        emit VotingOff();
     }
 
     function addAthorizedUser(string memory codename, address userAddress) public isSpecialUser(msg.sender){
@@ -124,10 +121,8 @@ contract Turing is ERC20 {
         return [owner, teacher];
     }
 
-    function getAuthorizedUsers() public pure returns (address[9] memory){
-        address[9] memory au = [
-            0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266,
-
+    function getAuthorizedUsers() public pure returns (address[8] memory){
+        address[8] memory au = [
             0x70997970C51812dc3A010C7d01b50e0d17dc79C8,
             0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC,
             0x90F79bf6EB2c4f870365E785982E1f101E93b906,

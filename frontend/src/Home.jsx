@@ -17,7 +17,7 @@ function Home() {
 
   const {isSpecialUserCtx, setIsSpecialUserCtx} = useContext(AuthContext)
 
-  const [signer, setSigner] = useState()
+  // const [signer, setSigner] = useState()
   
   const [codenameIssue, setCodenameIssue] = useState()
   const [qttTuringIssue, setQttTuringIssue] = useState(0) 
@@ -36,14 +36,17 @@ function Home() {
   const [isLoadingVoting, setIsLoadingVoting] = useState(false)
   const [isLoadingIssue, setIsLoadingIssue] = useState(false)
   const [isLoadingVote, setIsLoadingVote] = useState(false)
+  const [isLoadingRank, setIsLoadingRank] = useState(false)
 
+  let signer = null
   async function _initializeContract(){
       let _signer = signer
       if (_signer == null){
-        // const provider = new ethers.JsonRpcProvider(URL_HARDHAT)
-        const provider = new ethers.BrowserProvider(window.ethereum)
+        const provider = new ethers.JsonRpcProvider(URL_HARDHAT)
+        // const provider = new ethers.BrowserProvider(window.ethereum)
         _signer = await provider.getSigner()
-        setSigner(_signer)
+        // setSigner(_signer)
+        signer = _signer
       }
 
       const contract = new ethers.Contract(tokenAddress, TokenArtifact.abi, _signer)
@@ -54,21 +57,44 @@ function Home() {
   async function _setEventListener(){
     const contract = await _initializeContract()
 
-    contract.on("BalancesChanged", event => {
+    contract.on("BalancesChanged", (userAddress, event) => {
       console.log("Alteração nos saldos")
-      getInfo()
+
+      if(userAddress == signer.address && !toast.isActive('4')){
+        toast.success("Transação registrada com sucesso.", {duration: 1500, id: '4', position: "top-center"})
+      }
+      getRankInfo()
+    })
+
+    contract.on("VotingOn", event => {
+      if(!toast.isActive('2')){
+        toast.info("Votação aberta.", {duration: 1500, id: '2', position: "top-center"})
+      }
+      setIsLoadingVoting(false)
+    })
+
+    contract.on("VotingOff", event => {
+      if(!toast.isActive('3')){
+        toast.info("Votação fechada.", {duration: 1500, id: '3', position: "top-center"})
+      }
+      setIsLoadingVoting(false)
     })
   }
 
   useEffect(() => {
-    _setEventListener()
     getRankInfo()
     getUsersInfo()
+    _setEventListener()
   }, [])
 
   async function issueToken(){
     if (!codenameIssue|| !qttTuringIssue){
-      toast.error("Preencha todos os campos", {position: "top-center"})
+      toast.error("Preencha todos os campos", {duration: 1500, position: "top-center"})
+      return 
+    }
+
+    if(isNaN(qttTuringIssue)){
+      toast.error("Entrada inválida", {duration: 1500, position: "top-center"})
       return 
     }
 
@@ -77,13 +103,14 @@ function Home() {
 
     try {
       await contract.issueToken(codenameIssue, ethers.parseEther(qttTuringIssue))
+      // await getRankInfo()  
 
-      await getRankInfo() 
-      toast.success("Envio realizado com sucesso.", {position: "top-center"})
+      toast.info("Envio realizado.", {duration: 1500, position: "top-center"})
+      toast.info("Aguarde alguns segundos até que a transação seja registrada.", {duration: 1500, position: "top-center"})
 
     } catch {
       if(!rank.some(pair => pair.includes(codenameVote))){
-        toast.error("Usuário não registrado.", {position: "top-center"})
+        toast.error("Usuário não registrado.", {duration: 1500, position: "top-center"})
 
       }
     }
@@ -94,7 +121,12 @@ function Home() {
 
   async function vote(){
     if (!codenameVote || !qttTuringVote){
-      toast.error("Preencha todos os campos", {position: "top-center"})
+      toast.error("Preencha todos os campos", {duration: 1500, position: "top-center"})
+      return 
+    }
+
+    if(isNaN(qttTuringVote)){
+      toast.error("Entrada inválida", {duration: 1500, position: "top-center"})
       return 
     }
 
@@ -102,11 +134,11 @@ function Home() {
     try {
       setIsLoadingVote(true)
       
-      console.log(contract)
       await contract.vote(codenameVote, ethers.parseEther(qttTuringVote))
-      await getRankInfo() 
+      // await getRankInfo() 
 
-      toast.success("Voto registrado com sucesso.", {position: "top-center"})
+      toast.info("Voto enviado.", {duration: 1500, position: "top-center"})
+      toast.info("Aguarde aguns instantes até que a transação seja confirmada.", {duration: 1500, position: "top-center"})
 
       setIsLoadingVote(false)
 
@@ -117,20 +149,20 @@ function Home() {
       setIsLoadingVote(false)
 
       if(!isVotingOn){
-        toast.error("Votação fechada!", {position: "top-center"})
+        toast.error("Votação fechada!", {duration: 1500, position: "top-center"})
         console.log("Votação fechada!")
 
       } else if(hasVoted) {
-        toast.error("Você já votou nesse usuário.", {position: "top-center"})
+        toast.error("Você já votou nesse usuário.", {duration: 1500, position: "top-center"})
 
       } else if(signer.address == voteAddress){
-        toast.error("Você não pode votar em si mesmo!", {position: "top-center"})
+        toast.error("Você não pode votar em si mesmo!", {duration: 1500, position: "top-center"})
 
       } else if(qttTuringVote > 2){
-        toast.error("O máximo permitido são 2 Turings.", {position: "top-center"})
+        toast.error("O máximo permitido são 2 Turings.", {duration: 1500, position: "top-center"})
 
       } else if(!rank.some(pair => pair.includes(codenameVote))){
-        toast.error("Usuário não registrado.", {position: "top-center"})
+        toast.error("Usuário não registrado.", {duration: 1500, position: "top-center"})
 
       }
     }
@@ -144,13 +176,9 @@ function Home() {
 
     if(!isVotingOn){
       setIsVotingOn(true)
-      toast.info("Votação aberta.", {position: "top-center"})
     } else {
       setIsVotingOn(false)
-      toast.info("Votação fechada.", {position: "top-center"})
     }
-
-    setIsLoadingVoting(false)
   }
 
   async function getRankInfo() {
@@ -171,6 +199,8 @@ function Home() {
     pairs.sort((a, b) => b[1] - a[1])
 
     setRank(pairs)
+    
+    toast.success("Quadro atualizado", {duration: 1500, toastId: 1, position: "top-left"})
   }
 
   async function getUsersInfo() {
@@ -188,7 +218,7 @@ function Home() {
       <GridLoader color="white" loading={!isReady  }/>
       {isReady && (
         <div className='app0'>
-          <Ranking rank={ rank }/>
+          <Ranking rank={rank} isLoadingRank={isLoadingRank}/>
 
           <div>
             <h1>Votação Turing</h1>
