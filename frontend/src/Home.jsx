@@ -15,11 +15,11 @@ function Home() {
   const tokenAddress = import.meta.env.VITE_TOKEN_ADDRESS
   const URL_HARDHAT = "http://127.0.0.1:8545/"
 
-  const {isSpecialUserCtx = false, setIsSpecialUserCtx} = useContext(AuthContext)
+  const {isSpecialUserCtx, setIsSpecialUserCtx} = useContext(AuthContext)
 
   const [signer, setSigner] = useState()
   
-  const [userName, setUserName] = useState()
+  const [codenameIssue, setCodenameIssue] = useState()
   const [qttTuringIssue, setQttTuringIssue] = useState(0) 
 
   const [isVotingOn, setIsVotingOn] = useState(true)
@@ -33,13 +33,15 @@ function Home() {
   const [hasVoted, setHasVoted] = useState()
 
   const [isReady, setIsReady] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoadingVoting, setIsLoadingVoting] = useState(false)
+  const [isLoadingIssue, setIsLoadingIssue] = useState(false)
+  const [isLoadingVote, setIsLoadingVote] = useState(false)
 
   async function _initializeContract(){
       let _signer = signer
       if (_signer == null){
-        const provider = new ethers.JsonRpcProvider(URL_HARDHAT)
-        // const provider = new ethers.BrowserProvider(window.ethereum)
+        // const provider = new ethers.JsonRpcProvider(URL_HARDHAT)
+        const provider = new ethers.BrowserProvider(window.ethereum)
         _signer = await provider.getSigner()
         setSigner(_signer)
       }
@@ -65,13 +67,29 @@ function Home() {
   }, [])
 
   async function issueToken(){
+    if (!codenameIssue|| !qttTuringIssue){
+      toast.error("Preencha todos os campos", {position: "top-center"})
+      return 
+    }
+
+    setIsLoadingIssue(true)
     const contract = await _initializeContract()
 
-    setIsLoading(true)
-    await contract.issueToken(userName, ethers.parseEther(qttTuringIssue))
+    try {
+      await contract.issueToken(codenameIssue, ethers.parseEther(qttTuringIssue))
 
-    await getRankInfo() 
-    toast.success("Envio realizado com sucesso.", {position: "top-center"})
+      await getRankInfo() 
+      toast.success("Envio realizado com sucesso.", {position: "top-center"})
+
+    } catch {
+      if(!rank.some(pair => pair.includes(codenameVote))){
+        toast.error("Usuário não registrado.", {position: "top-center"})
+
+      }
+    }
+
+    setIsLoadingIssue(false)
+    
   }
 
   async function vote(){
@@ -82,19 +100,21 @@ function Home() {
 
     const contract = await _initializeContract()
     try {
-      setIsLoading(true)
-    
+      setIsLoadingVote(true)
       
+      console.log(contract)
       await contract.vote(codenameVote, ethers.parseEther(qttTuringVote))
       await getRankInfo() 
 
       toast.success("Voto registrado com sucesso.", {position: "top-center"})
 
+      setIsLoadingVote(false)
+
     } catch {
       const hasVoted = await contract.ifHasVoted(signer.address, codenameVote)
       const voteAddress =  await contract.getUserAddress(codenameVote)
 
-      setIsLoading(false)
+      setIsLoadingVote(false)
 
       if(!isVotingOn){
         toast.error("Votação fechada!", {position: "top-center"})
@@ -117,17 +137,20 @@ function Home() {
   }
 
   async function setVoting(){
+    setIsLoadingVoting(true)
     const contract = await _initializeContract()
     
     isVotingOn ? await contract.votingOff() : await contract.votingOn()
 
     if(!isVotingOn){
+      setIsVotingOn(true)
       toast.info("Votação aberta.", {position: "top-center"})
     } else {
+      setIsVotingOn(false)
       toast.info("Votação fechada.", {position: "top-center"})
     }
 
-    setIsVotingOn(prevState => !prevState)
+    setIsLoadingVoting(false)
   }
 
   async function getRankInfo() {
@@ -148,8 +171,6 @@ function Home() {
     pairs.sort((a, b) => b[1] - a[1])
 
     setRank(pairs)
-
-    setIsLoading(false)
   }
 
   async function getUsersInfo() {
@@ -174,14 +195,14 @@ function Home() {
 
             {isSpecialUserCtx && (
               <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px'}}>
-                <IssueToken setUserName={setUserName} setQttTuringIssue={setQttTuringIssue} issueToken={issueToken} isLoading={isLoading} />
-                <SetVoting setVoting={setVoting} isVotingOn={isVotingOn}/>
+                <IssueToken setCodenameIssue={setCodenameIssue} setQttTuringIssue={setQttTuringIssue} issueToken={issueToken} isLoadingIssue={isLoadingIssue} />
+                <SetVoting setVoting={setVoting} isVotingOn={isVotingOn} isLoadingVoting={isLoadingVoting}/>
               </div>
             )}
 
             <div className='app'>
               {!isSpecialUserCtx && (
-                <Vote setCodenameVote={setCodenameVote} setQttTuringVote={setQttTuringVote} vote={vote} isLoading={isLoading}/>
+                <Vote setCodenameVote={setCodenameVote} setQttTuringVote={setQttTuringVote} vote={vote} isLoadingVote={isLoadingVote}/>
               )}
             </div>
           </div>

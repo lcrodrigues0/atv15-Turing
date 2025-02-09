@@ -1,6 +1,6 @@
 import { PuffLoader } from "react-spinners";
 
-export function Vote({setCodenameVote, setQttTuringVote, vote, isLoading}){
+export function Vote({setCodenameVote, setQttTuringVote, vote, isLoadingVote}){
     return (
         <div className='app'>
             <input 
@@ -14,12 +14,12 @@ export function Vote({setCodenameVote, setQttTuringVote, vote, isLoading}){
                 onChange={e => setQttTuringVote(e.target.value)}
             />
             
-            { !isLoading &&
+            { !isLoadingVote &&
                 <button onClick={vote}>
                     Votar
                 </button>
             }
-            <PuffLoader color="white" loading={isLoading  } size={40} />
+            <PuffLoader color="white" loading={isLoadingVote  } size={40} />
 
         </div>
     )

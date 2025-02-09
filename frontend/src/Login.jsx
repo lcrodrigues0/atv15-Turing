@@ -34,8 +34,8 @@ function Login() {
                 await window.ethereum.disconnect();
             }
 
-            const provider = new ethers.JsonRpcProvider(URL_HARDHAT)
-            // const provider = new ethers.BrowserProvider(window.ethereum)
+            // const provider = new ethers.JsonRpcProvider(URL_HARDHAT)
+            const provider = new ethers.BrowserProvider(window.ethereum)
             const _signer = await provider.getSigner()
 
             setSigner(_signer)
@@ -45,9 +45,10 @@ function Login() {
 
             await getInfos(contract)
             
-            setIsLoading(false)
             setIsConnected(true)
         }
+
+        setIsLoading(false)
     }
 
     async function getInfos(contract){
