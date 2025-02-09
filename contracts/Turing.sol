@@ -5,6 +5,8 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract Turing is ERC20 {
     address private owner;
+    address private teacher; 
+
     bool private isVotingOn = true;
 
     mapping(string => address) private registeredUsers;
@@ -12,11 +14,11 @@ contract Turing is ERC20 {
     mapping(address => mapping(address => bool)) hasVoted;
     mapping(string => uint256) balances;
 
-    event Vote();
+    event BalancesChanged();
 
-    constructor() ERC20 ("Turing", "Turing"){
+    constructor() ERC20 ("Turing", "Turing"){        
         authorizedUsers[0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266] = true;
-        
+
         authorizedUsers[0x70997970C51812dc3A010C7d01b50e0d17dc79C8] = true;
         authorizedUsers[0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC] = true;
         authorizedUsers[0x90F79bf6EB2c4f870365E785982E1f101E93b906] = true;
@@ -25,6 +27,8 @@ contract Turing is ERC20 {
         authorizedUsers[0x976EA74026E726554dB657fA54763abd0C3a0aa9] = true;
         authorizedUsers[0x14dC79964da2C08b23698B3D3cc7Ca32193d9955] = true;
         authorizedUsers[0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f] = true;
+
+        registeredUsers["nome0"] = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
 
         registeredUsers["nome1"] = 0x70997970C51812dc3A010C7d01b50e0d17dc79C8;
         registeredUsers["nome2"] = 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC;
@@ -35,6 +39,8 @@ contract Turing is ERC20 {
         registeredUsers["nome7"] = 0x14dC79964da2C08b23698B3D3cc7Ca32193d9955;
         registeredUsers["nome8"] = 0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f;
 
+        balances["nome0"] = 0;
+        
         balances["nome1"] = 0;
         balances["nome2"] = 0;
         balances["nome3"] = 0;
@@ -44,11 +50,14 @@ contract Turing is ERC20 {
         balances["nome7"] = 0;
         balances["nome8"] = 0;
 
-        owner = msg.sender;
+        // owner = msg.sender;
+        owner = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
+        // owner = 0x502542668aF09fa7aea52174b9965A7799343Df7;
+        teacher = 0x502542668aF09fa7aea52174b9965A7799343Df7;
     }
 
     modifier isSpecialUser(address senderAddress){
-        require(senderAddress == owner || senderAddress == 0x502542668aF09fa7aea52174b9965A7799343Df7);
+        require(senderAddress == owner || senderAddress == teacher);
         _;
     }
 
@@ -67,6 +76,8 @@ contract Turing is ERC20 {
         _mint(addrUser, qtdSaTuring);
 
         balances[codename] = balanceOf(addrUser);
+
+        emit BalancesChanged();
     }
 
     function vote(string memory codename, uint qtdSaTuring) public isAuthorizedUser(msg.sender) onlyOnVotingOn() {
@@ -78,10 +89,11 @@ contract Turing is ERC20 {
 
         _mint(addrUser, qtdSaTuring);
         _mint(msg.sender, 200000000000000000);
+        hasVoted[msg.sender][addrUser] = true;
 
         balances[codename] = balanceOf(addrUser);
 
-        emit Vote();
+        emit BalancesChanged();
     }
 
     function votingOn() public isSpecialUser(msg.sender){
@@ -106,5 +118,37 @@ contract Turing is ERC20 {
         }   
 
         return (userNames, userBalances);
+    }
+
+    function getSpecialUsers() public view returns (address[2] memory ){
+        return [owner, teacher];
+    }
+
+    function getAuthorizedUsers() public pure returns (address[9] memory){
+        address[9] memory au = [
+            0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266,
+
+            0x70997970C51812dc3A010C7d01b50e0d17dc79C8,
+            0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC,
+            0x90F79bf6EB2c4f870365E785982E1f101E93b906,
+            0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65,
+            0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc,
+            0x976EA74026E726554dB657fA54763abd0C3a0aa9,
+            0x14dC79964da2C08b23698B3D3cc7Ca32193d9955,
+            0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f 
+        ];
+
+        return au;
+    }
+
+    function ifHasVoted(address userAdress, string memory username) public view returns (bool){
+        address otherAddress = registeredUsers[username];
+
+        return (hasVoted[userAdress][otherAddress]);
+    }
+
+    function getUserAddress (string memory userName) public view returns (address){
+        address userAddress = registeredUsers[userName];
+        return userAddress;
     }
 }

@@ -5,6 +5,9 @@
     "hardhat": "^2.22.18"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^5.2.0"
+    "@openzeppelin/contracts": "^5.2.0",
+    "react-router-dom": "^7.1.5",
+    "react-spinners": "^0.15.0",
+    "react-toastify": "^11.0.3"
   }
 }
