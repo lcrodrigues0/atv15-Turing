@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { ToastContainer, toast } from 'react-toastify'
 import { AuthContext } from './AuthContext'
 
-import TokenArtifact from "/home/leticia/Desktop/atv15-Turing/artifacts/contracts/Turing.sol/Turing.json"
+import TokenArtifact from "../../artifacts/contracts/Turing.sol/Turing.json"
 import { PuffLoader } from 'react-spinners'
 
 function Login() {
@@ -34,8 +34,8 @@ function Login() {
                 await window.ethereum.disconnect();
             }
 
-            const provider = new ethers.JsonRpcProvider(URL_HARDHAT)
-            // const provider = new ethers.BrowserProvider(window.ethereum)
+            // const provider = new ethers.JsonRpcProvider(URL_HARDHAT)
+            const provider = new ethers.BrowserProvider(window.ethereum)
             const _signer = await provider.getSigner()
 
             setSigner(_signer)
