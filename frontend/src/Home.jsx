@@ -50,8 +50,8 @@ function Home() {
   async function _initializeContract(){
       let _signer = signer
       if (_signer == null){
-        // const provider = new ethers.JsonRpcProvider(URL_HARDHAT)
-        const provider = new ethers.BrowserProvider(window.ethereum)
+        const provider = new ethers.JsonRpcProvider(URL_HARDHAT)
+        // const provider = new ethers.BrowserProvider(window.ethereum)
         _signer = await provider.getSigner()
         // setSigner(_signer)
         signer = _signer
@@ -68,24 +68,29 @@ function Home() {
     contract.on("BalancesChanged", (userAddress, event) => {
       console.log("Alteração nos saldos")
 
-      if(userAddress == signer.address && !toast.isActive('4')){
-        toast.success("Transação registrada com sucesso.", {duration: 1500, id: '4', position: "top-center"})
-      }
       getRankInfo()
+
+      if(userAddress == signer.address && !toast.isActive(4)){
+        toast.success("Transação registrada com sucesso.", {duration: 1500, id: 4, position: "top-center"})
+      }
     })
 
     contract.on("VotingOn", event => {
+      console.log("voting on")
+      setIsLoadingVoting(false)
+
       if(!toast.isActive('2')){
         toast.info("Votação aberta.", {duration: 1500, id: '2', position: "top-center"})
       }
-      setIsLoadingVoting(false)
     })
 
     contract.on("VotingOff", event => {
+      console.log("voting off")
+      setIsLoadingVoting(false)
+
       if(!toast.isActive('3')){
         toast.info("Votação fechada.", {duration: 1500, id: '3', position: "top-center"})
       }
-      setIsLoadingVoting(false)
     })
   }
 
@@ -114,7 +119,7 @@ function Home() {
       await contract.issueToken(codenameIssue, ethers.parseEther(qttTuringIssue))
       // await getRankInfo()  
 
-      toast.info("Envio realizado. Aguarde alguns segundos até que a transação seja registrada.", {duration: 1500, position: "top-center"})
+      toast.info("Envio realizado. \nAguarde alguns segundos até que a transação seja registrada.", {duration: 1500, position: "top-center"})
     } catch {
       if(!rank.some(pair => pair.includes(codenameVote))){
         toast.error("Usuário não registrado.", {duration: 1500, position: "top-center"})
@@ -144,7 +149,7 @@ function Home() {
       await contract.vote(codenameVote, ethers.parseEther(qttTuringVote))
       // await getRankInfo() 
 
-      toast.info("Voto enviado. \nAguarde aguns instantes até que a transação seja confirmada.", {duration: 1500, position: "top-center"})
+      toast.info("Voto enviado. \n\nAguarde alguns instantes até que a transação seja confirmada.", {duration: 1500, position: "top-center"})
 
       setIsLoadingVote(false)
 
@@ -185,6 +190,8 @@ function Home() {
     } else {
       setIsVotingOn(false)
     }
+
+    toast.info("Envio realizado. \nAguarde alguns segundos até que a transação seja registrada.", {duration: 1500, position: "top-center"})
   }
 
   async function getRankInfo() {
@@ -206,7 +213,6 @@ function Home() {
 
     setRank(pairs)
     
-    toast.dismiss('1')
     toast.success("Quadro atualizado", {duration: 1500, toastId: '1', position: "top-left"})
   }
 
@@ -245,7 +251,7 @@ function Home() {
           </div>
         </div>)}
       
-      <ToastContainer />
+      <ToastContainer pauseOnFocusLoss={false}/>
     </>
   )
 }
