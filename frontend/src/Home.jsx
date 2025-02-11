@@ -50,8 +50,8 @@ function Home() {
   async function _initializeContract(){
       let _signer = signer
       if (_signer == null){
-        const provider = new ethers.JsonRpcProvider(URL_HARDHAT)
-        // const provider = new ethers.BrowserProvider(window.ethereum)
+        // const provider = new ethers.JsonRpcProvider(URL_HARDHAT)
+        const provider = new ethers.BrowserProvider(window.ethereum)
         _signer = await provider.getSigner()
         // setSigner(_signer)
         signer = _signer
@@ -71,25 +71,28 @@ function Home() {
       getRankInfo()
 
       if(userAddress == signer.address && !toast.isActive(4)){
+        console.log("Transação registrada.")
         toast.success("Transação registrada com sucesso.", {duration: 1500, id: 4, position: "top-center"})
       }
     })
 
     contract.on("VotingOn", event => {
-      console.log("voting on")
       setIsLoadingVoting(false)
+      console.log("voting on")
 
       if(!toast.isActive('2')){
+        console.log("event voting on")
         toast.info("Votação aberta.", {duration: 1500, id: '2', position: "top-center"})
       }
     })
 
     contract.on("VotingOff", event => {
-      console.log("voting off")
       setIsLoadingVoting(false)
+      console.log("voting off")
 
-      if(!toast.isActive('3')){
-        toast.info("Votação fechada.", {duration: 1500, id: '3', position: "top-center"})
+      if(!toast.isActive('2')){
+        console.log("event voting off")
+        toast.info("Votação fechada.", {duration: 1500, id: '2', position: "top-center"})
       }
     })
   }
@@ -222,6 +225,9 @@ function Home() {
     
     let su = await contract.getSpecialUsers()
 
+    let vo = await contract.getIsVotingOn()
+
+    setIsVotingOn(vo)
     setSpecialUsers(su)
     setIsReady(true)
   }

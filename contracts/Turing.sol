@@ -18,33 +18,34 @@ contract Turing is ERC20 {
     event VotingOn();
     event VotingOff();
 
-    constructor() ERC20 ("Turing", "Turing"){        
-        authorizedUsers[0x70997970C51812dc3A010C7d01b50e0d17dc79C8] = true;
-        authorizedUsers[0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC] = true;
-        authorizedUsers[0x90F79bf6EB2c4f870365E785982E1f101E93b906] = true;
-        authorizedUsers[0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65] = true;
-        authorizedUsers[0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc] = true;
-        authorizedUsers[0x976EA74026E726554dB657fA54763abd0C3a0aa9] = true;
-        authorizedUsers[0x14dC79964da2C08b23698B3D3cc7Ca32193d9955] = true;
-        authorizedUsers[0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f] = true;
+    address[8] userAddresses = [
+        0x70997970C51812dc3A010C7d01b50e0d17dc79C8,
+        0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC,
+        0x90F79bf6EB2c4f870365E785982E1f101E93b906,
+        0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65,
+        0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc,
+        0x976EA74026E726554dB657fA54763abd0C3a0aa9,
+        0x14dC79964da2C08b23698B3D3cc7Ca32193d9955,
+        0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f 
+    ];
 
-        registeredUsers["nome1"] = 0x70997970C51812dc3A010C7d01b50e0d17dc79C8;
-        registeredUsers["nome2"] = 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC;
-        registeredUsers["nome3"] = 0x90F79bf6EB2c4f870365E785982E1f101E93b906;
-        registeredUsers["nome4"] = 0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65;
-        registeredUsers["nome5"] = 0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc;
-        registeredUsers["nome6"] = 0x976EA74026E726554dB657fA54763abd0C3a0aa9;
-        registeredUsers["nome7"] = 0x14dC79964da2C08b23698B3D3cc7Ca32193d9955;
-        registeredUsers["nome8"] = 0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f;
-        
-        balances["nome1"] = 0;
-        balances["nome2"] = 0;
-        balances["nome3"] = 0;
-        balances["nome4"] = 0;
-        balances["nome5"] = 0;
-        balances["nome6"] = 0;
-        balances["nome7"] = 0;
-        balances["nome8"] = 0;
+    string[8] userNames = [
+        "nome1", 
+        "nome2", 
+        "nome3", 
+        "nome4", 
+        "nome5", 
+        "nome6", 
+        "nome7", 
+        "nome8"
+    ];
+
+    constructor() ERC20 ("Turing", "Turing"){       
+        for (uint256 i = 0; i < userNames.length; i++){
+            authorizedUsers[userAddresses[i]] = true;
+            registeredUsers[userNames[i]] = userAddresses[i];
+            balances[userNames[i]] = 0;
+        }   
 
         owner = msg.sender;
         // owner = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
@@ -78,6 +79,7 @@ contract Turing is ERC20 {
     function vote(string memory codename, uint qtdSaTuring) public isAuthorizedUser(msg.sender) onlyOnVotingOn() {
         address addrUser = registeredUsers[codename];
 
+        require(registeredUsers[codename] == address(0));
         require(msg.sender != addrUser, "User can't vote for itself");
         require(!hasVoted[msg.sender][addrUser], "User has already voted for this user");
         require(qtdSaTuring <= 2000000000000000000, "Maximum SaTurings");
@@ -107,7 +109,6 @@ contract Turing is ERC20 {
     }
 
     function getUserInfos() public view returns(string[8] memory, uint256[8] memory){
-        string[8] memory userNames = ["nome1", "nome2", "nome3", "nome4", "nome5", "nome6", "nome7", "nome8"];
         uint256[8] memory userBalances;
 
         for (uint256 i = 0; i < userNames.length; i++){
@@ -117,23 +118,12 @@ contract Turing is ERC20 {
         return (userNames, userBalances);
     }
 
-    function getSpecialUsers() public view returns (address[2] memory ){
+    function getSpecialUsers() public view returns (address[2] memory){
         return [owner, teacher];
     }
 
-    function getAuthorizedUsers() public pure returns (address[8] memory){
-        address[8] memory au = [
-            0x70997970C51812dc3A010C7d01b50e0d17dc79C8,
-            0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC,
-            0x90F79bf6EB2c4f870365E785982E1f101E93b906,
-            0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65,
-            0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc,
-            0x976EA74026E726554dB657fA54763abd0C3a0aa9,
-            0x14dC79964da2C08b23698B3D3cc7Ca32193d9955,
-            0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f 
-        ];
-
-        return au;
+    function getAuthorizedUsers() public view returns (address[8] memory){
+        return userAddresses;
     }
 
     function ifHasVoted(address userAdress, string memory username) public view returns (bool){
@@ -145,5 +135,9 @@ contract Turing is ERC20 {
     function getUserAddress (string memory userName) public view returns (address){
         address userAddress = registeredUsers[userName];
         return userAddress;
+    }
+
+    function getIsVotingOn() public view returns (bool){
+        return isVotingOn;
     }
 }
