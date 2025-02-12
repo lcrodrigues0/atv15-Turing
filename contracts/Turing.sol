@@ -12,7 +12,7 @@ contract Turing is ERC20 {
     mapping(string => address) private registeredUsers;
     mapping(address => bool) private authorizedUsers;
     mapping(address => mapping(address => bool)) hasVoted;
-    mapping(string => uint256) balances;
+    mapping(address => uint256) balances;
 
     event BalancesChanged(address userAddress);
     event VotingOn();
@@ -44,7 +44,7 @@ contract Turing is ERC20 {
         for (uint256 i = 0; i < userNames.length; i++){
             authorizedUsers[userAddresses[i]] = true;
             registeredUsers[userNames[i]] = userAddresses[i];
-            balances[userNames[i]] = 0;
+            balances[userAddresses[i]] = 0;
         }   
 
         owner = msg.sender;
@@ -71,7 +71,7 @@ contract Turing is ERC20 {
         address addrUser = registeredUsers[codename];
         _mint(addrUser, qtdSaTuring);
 
-        balances[codename] = balanceOf(addrUser);
+        balances[addrUser] = balanceOf(addrUser);
 
         emit BalancesChanged(msg.sender);
     }
@@ -79,7 +79,7 @@ contract Turing is ERC20 {
     function vote(string memory codename, uint qtdSaTuring) public isAuthorizedUser(msg.sender) onlyOnVotingOn() {
         address addrUser = registeredUsers[codename];
 
-        require(registeredUsers[codename] == address(0));
+        require(registeredUsers[codename] != address(0), "User not registered");
         require(msg.sender != addrUser, "User can't vote for itself");
         require(!hasVoted[msg.sender][addrUser], "User has already voted for this user");
         require(qtdSaTuring <= 2000000000000000000, "Maximum SaTurings");
@@ -88,7 +88,8 @@ contract Turing is ERC20 {
         _mint(msg.sender, 200000000000000000);
         hasVoted[msg.sender][addrUser] = true;
 
-        balances[codename] = balanceOf(addrUser);
+        balances[addrUser] = balanceOf(addrUser);
+        balances[msg.sender] = balanceOf(msg.sender);
 
         emit BalancesChanged(msg.sender);
     }
@@ -112,7 +113,7 @@ contract Turing is ERC20 {
         uint256[8] memory userBalances;
 
         for (uint256 i = 0; i < userNames.length; i++){
-            userBalances[i] = balances[userNames[i]];
+            userBalances[i] = balances[userAddresses[i]];
         }   
 
         return (userNames, userBalances);
